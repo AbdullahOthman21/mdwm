@@ -6,9 +6,10 @@
 #include <X11/Xft/Xft.h>
 
 #include "drw.h"
-#include "util.h"
 
 #define UTF_INVALID 0xFFFD
+#define MIN(A, B)               ((A) < (B) ? (A) : (B))
+#define LENGTH(X)               (sizeof (X) / sizeof (X)[0])
 
 static int
 utf8decode(const char *s_in, long *u, int *err)
@@ -49,7 +50,7 @@ utf8decode(const char *s_in, long *u, int *err)
 Drw *
 drw_create(Display *dpy, int screen, Window root, unsigned int w, unsigned int h)
 {
-	Drw *drw = ecalloc(1, sizeof(Drw));
+	Drw *drw = calloc(1, sizeof(Drw));
 
 	drw->dpy = dpy;
 	drw->screen = screen;
@@ -116,10 +117,10 @@ xfont_create(Drw *drw, const char *fontname, FcPattern *fontpattern)
 			return NULL;
 		}
 	} else {
-		die("no font specified.");
+		exit(1);
 	}
 
-	font = ecalloc(1, sizeof(Fnt));
+	font = calloc(1, sizeof(Fnt));
 	font->xfont = xfont;
 	font->pattern = pattern;
 	font->h = xfont->ascent + xfont->descent;
@@ -175,7 +176,7 @@ drw_clr_create(Drw *drw, Clr *dest, const char *clrname)
 	if (!XftColorAllocName(drw->dpy, DefaultVisual(drw->dpy, drw->screen),
 	                       DefaultColormap(drw->dpy, drw->screen),
 	                       clrname, dest))
-		die("error, cannot allocate color '%s'", clrname);
+		exit(1);
 }
 
 /* Create color schemes. */
@@ -186,7 +187,7 @@ drw_scm_create(Drw *drw, const char *clrnames[], size_t clrcount)
 	Clr *ret;
 
 	/* need at least two colors for a scheme */
-	if (!drw || !clrnames || clrcount < 2 || !(ret = ecalloc(clrcount, sizeof(Clr))))
+	if (!drw || !clrnames || clrcount < 2 || !(ret = calloc(clrcount, sizeof(Clr))))
 		return NULL;
 
 	for (i = 0; i < clrcount; i++)
@@ -370,7 +371,7 @@ drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lp
 
 			if (!drw->fonts->pattern) {
 				/* Refer to the comment in xfont_create for more information. */
-				die("the first font in the cache must be loaded from a font string.");
+				exit(1);
 			}
 
 			fcpattern = FcPatternDuplicate(drw->fonts->pattern);
@@ -452,7 +453,7 @@ drw_cur_create(Drw *drw, int shape)
 {
 	Cur *cur;
 
-	if (!drw || !(cur = ecalloc(1, sizeof(Cur))))
+	if (!drw || !(cur = calloc(1, sizeof(Cur))))
 		return NULL;
 
 	cur->cursor = XCreateFontCursor(drw->dpy, shape);

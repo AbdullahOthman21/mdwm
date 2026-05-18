@@ -8,4 +8,4 @@ CFLAGS="\
 
 #test -f drw.o || gcc -c $CFLAGS drw.c
 
-gcc -o dwm $CFLAGS -Wunused-macros -lX11 -lfontconfig -lXft util.c drw.c dwm.c
+gcc -o dwm $CFLAGS -Wunused-macros -lX11 -lfontconfig -lXft drw.c dwm.c

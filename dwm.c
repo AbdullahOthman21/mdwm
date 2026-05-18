@@ -35,9 +35,11 @@
 #include <X11/Xft/Xft.h>
 
 #include "drw.h"
-#include "util.h"
 
 /* macros */
+#define MAX(A, B)               ((A) > (B) ? (A) : (B))
+#define MIN(A, B)               ((A) < (B) ? (A) : (B))
+#define LENGTH(X)               (sizeof (X) / sizeof (X)[0])
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
 #define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define INTERSECT(x,y,w,h,m)    (MAX(0, MIN((x)+(w),(m)->wx+(m)->ww) - MAX((x),(m)->wx)) \
@@ -624,7 +626,7 @@ createmon(void)
 {
 	Monitor *m;
 
-	m = ecalloc(1, sizeof(Monitor));
+	m = calloc(1, sizeof(Monitor));
 	m->tagset[0] = m->tagset[1] = 1;
 	m->mfact = mfact;
 	m->nmaster = nmaster;
@@ -984,7 +986,7 @@ manage(Window w, XWindowAttributes *wa)
 	Window trans = None;
 	XWindowChanges wc;
 
-	c = ecalloc(1, sizeof(Client));
+	c = calloc(1, sizeof(Client));
 	c->win = w;
 	/* geometry */
 	c->x = c->oldx = wa->x;
@@ -1509,7 +1511,7 @@ setup(void)
 	root = RootWindow(dpy, screen);
 	drw = drw_create(dpy, screen, root, sw, sh);
 	if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
-		die("no fonts could be loaded.");
+		exit(1);
 	lrpad = drw->fonts->h;
 	bh = drw->fonts->h + 2;
 	updategeom();
@@ -1533,7 +1535,7 @@ setup(void)
 	cursor[CurResize] = drw_cur_create(drw, XC_sizing);
 	cursor[CurMove] = drw_cur_create(drw, XC_fleur);
 	/* init appearance */
-	scheme = ecalloc(LENGTH(colors), sizeof(Clr *));
+	scheme = calloc(LENGTH(colors), sizeof(Clr *));
 	for (i = 0; i < LENGTH(colors); i++)
 		scheme[i] = drw_scm_create(drw, colors[i], 3);
 	/* init bars */
@@ -1611,7 +1613,7 @@ spawn(const Arg *arg)
 		sigaction(SIGCHLD, &sa, NULL);
 
 		execvp(((char **)arg->v)[0], (char **)arg->v);
-		die("dwm: execvp '%s' failed:", ((char **)arg->v)[0]);
+		exit(1);
 	}
 }
 
@@ -2009,7 +2011,7 @@ xerrordummy(Display *dpy, XErrorEvent *ee)
 int
 xerrorstart(Display *dpy, XErrorEvent *ee)
 {
-	die("dwm: another window manager is already running");
+	exit(1);
 	return -1;
 }
 
@@ -2029,7 +2031,7 @@ int
 main(void)
 {
 	if (!(dpy = XOpenDisplay(NULL)))
-		die("dwm: cannot open display");
+		exit(1);
 	checkotherwm();
 	setup();
 	scan();
