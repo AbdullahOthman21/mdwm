@@ -8,7 +8,6 @@
 #include "drw.h"
 
 #define UTF_INVALID 0xFFFD
-#define MIN(A, B)               ((A) < (B) ? (A) : (B))
 #define LENGTH(X)               (sizeof (X) / sizeof (X)[0])
 
 static int
@@ -422,15 +421,6 @@ drw_fontset_getwidth(Drw *drw, const char *text)
 	if (!drw || !drw->fonts || !text)
 		return 0;
 	return drw_text(drw, 0, 0, 0, 0, 0, text, 0);
-}
-
-unsigned int
-drw_fontset_getwidth_clamp(Drw *drw, const char *text, unsigned int n)
-{
-	unsigned int tmp = 0;
-	if (drw && drw->fonts && text && n)
-		tmp = drw_text(drw, 0, 0, 0, 0, 0, text, n);
-	return MIN(n, tmp);
 }
 
 void
