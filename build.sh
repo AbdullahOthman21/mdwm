@@ -2,7 +2,7 @@ set -eux
 
 CFLAGS="\
 -pipe -std=c99 -pedantic -Wall -Wno-deprecated-declarations -Os \
--D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700L -DVERSION=\"6.8\" \
+-D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700L \
 -I/usr/include/freetype2 \
 "
 
