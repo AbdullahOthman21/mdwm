@@ -15,9 +15,9 @@ static const char *tags[] = { "1", "2", "3" };
 static const int refreshrate = 120;  /* refresh rate (per second) for client move/resize */
 
 static const Layout layouts[] = {
-	/* symbol     arrange function */
-	{ "[]=",      tile },    /* first entry is default */
-	{ "><>",      NULL },    /* no layout function means floating behavior */
+	/* symbol   arrange function */
+	{ "T",      tile },
+	{ "F",      NULL },
 };
 
 /* key definitions */
