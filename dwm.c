@@ -201,7 +201,6 @@ static void updatewindowtype(Client *c);
 static void updatewmhints(Client *c);
 static void view(const Arg *arg);
 static Client *wintoclient(Window w);
-static Monitor *wintomon(Window w);
 static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
@@ -376,16 +375,9 @@ buttonpress(XEvent *e)
 	unsigned int i, x, click;
 	Arg arg = {0};
 	Client *c;
-	Monitor *m;
 	XButtonPressedEvent *ev = &e->xbutton;
 
 	click = ClkRootWin;
-	/* focus monitor if necessary */
-	if ((m = wintomon(ev->window)) && m != selmon) {
-		unfocus(selmon->sel, 1);
-		selmon = m;
-		focus(NULL);
-	}
 	if (ev->window == selmon->barwin) {
 		i = x = 0;
 		do
@@ -695,7 +687,7 @@ enternotify(XEvent *e)
 	if ((ev->mode != NotifyNormal || ev->detail == NotifyInferior) && ev->window != root)
 		return;
 	c = wintoclient(ev->window);
-	m = c ? c->mon : wintomon(ev->window);
+	m = c ? c->mon : selmon;
 	if (m != selmon) {
 		unfocus(selmon->sel, 1);
 		selmon = m;
@@ -707,11 +699,10 @@ enternotify(XEvent *e)
 void
 expose(XEvent *e)
 {
-	Monitor *m;
 	XExposeEvent *ev = &e->xexpose;
 
-	if (ev->count == 0 && (m = wintomon(ev->window)))
-		drawbar(m);
+	if (ev->count == 0)
+		drawbar(selmon);
 }
 
 void
@@ -1722,7 +1713,6 @@ updategeom(void)
 	}
 	if (dirty) {
 		selmon = mons;
-		selmon = wintomon(root);
 	}
 	return dirty;
 }
@@ -1857,23 +1847,6 @@ wintoclient(Window w)
 			if (c->win == w)
 				return c;
 	return NULL;
-}
-
-Monitor *
-wintomon(Window w)
-{
-	int x, y;
-	Client *c;
-	Monitor *m;
-
-	if (w == root && getrootptr(&x, &y))
-		return recttomon(x, y, 1, 1);
-	for (m = mons; m; m = m->next)
-		if (w == m->barwin)
-			return m;
-	if ((c = wintoclient(w)))
-		return c->mon;
-	return selmon;
 }
 
 /* There's no way to check accesses to destroyed windows, thus those cases are
