@@ -192,7 +192,6 @@ static void unmapnotify(XEvent *e);
 static void updatebarpos(Monitor *m);
 static void updatebars(void);
 static void updateclientlist(void);
-static int updategeom(void);
 static void updatenumlockmask(void);
 static void updatesizehints(Client *c);
 static void updatestatus(void);
@@ -500,12 +499,11 @@ configurenotify(XEvent *e)
 	XConfigureEvent *ev = &e->xconfigure;
 	int dirty;
 
-	/* TODO: updategeom handling sucks, needs to be simplified */
 	if (ev->window == root) {
 		dirty = (sw != ev->width || sh != ev->height);
 		sw = ev->width;
 		sh = ev->height;
-		if (updategeom() || dirty) {
+		if (dirty) {
 			drw_resize(drw, sw, bh);
 			updatebars();
 			for (m = mons; m; m = m->next) {
@@ -1444,7 +1442,12 @@ setup(void)
 		exit(1);
 	lrpad = drw->fonts->h;
 	bh = drw->fonts->h + 2;
-	updategeom();
+	mons = createmon();
+	selmon = mons;
+	mons->mw = mons->ww = sw;
+	mons->mh = mons->wh = sh;
+	updatebarpos(mons);
+
 	/* init atoms */
 	utf8string = XInternAtom(dpy, "UTF8_STRING", False);
 	wmatom[WMProtocols] = XInternAtom(dpy, "WM_PROTOCOLS", False);
@@ -1694,27 +1697,6 @@ updateclientlist(void)
 			XChangeProperty(dpy, root, netatom[NetClientList],
 				XA_WINDOW, 32, PropModeAppend,
 				(unsigned char *) &(c->win), 1);
-}
-
-int
-updategeom(void)
-{
-	int dirty = 0;
-
-	{ /* default monitor setup */
-		if (!mons)
-			mons = createmon();
-		if (mons->mw != sw || mons->mh != sh) {
-			dirty = 1;
-			mons->mw = mons->ww = sw;
-			mons->mh = mons->wh = sh;
-			updatebarpos(mons);
-		}
-	}
-	if (dirty) {
-		selmon = mons;
-	}
-	return dirty;
 }
 
 void
