@@ -6,6 +6,6 @@ CFLAGS="\
 -I/usr/include/freetype2 \
 "
 
-#test -f drw.o || gcc -c $CFLAGS drw.c
+test -e drw.o || gcc -c $CFLAGS drw.c
 
-gcc -o dwm $CFLAGS -Wunused-macros -lX11 -lfontconfig -lXft drw.c dwm.c
+gcc -o dwm $CFLAGS -Wunused-macros -lX11 -lfontconfig -lXft drw.o dwm.c
