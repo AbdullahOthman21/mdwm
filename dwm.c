@@ -184,7 +184,7 @@ static void togglefloating(const Arg *arg);
 static void unfocus(Client *c, int setfocus);
 static void unmanage(Client *c, int destroyed);
 static void unmapnotify(XEvent *e);
-static void updatebarpos(Monitor *m);
+static void updatebarpos(void);
 static void updatebars(void);
 static void updateclientlist(void);
 static void updatenumlockmask(void);
@@ -1378,7 +1378,7 @@ setup(void)
 	selmon = mons;
 	mons->mw = mons->ww = sw;
 	mons->mh = mons->wh = sh;
-	updatebarpos(mons);
+	updatebarpos();
 
 	/* init atoms */
 	utf8string = XInternAtom(dpy, "UTF8_STRING", False);
@@ -1604,13 +1604,13 @@ updatebars(void)
 }
 
 void
-updatebarpos(Monitor *m)
+updatebarpos(void)
 {
-	m->wy = m->my;
-	m->wh = m->mh;
-	m->wh -= bh;
-	m->by = m->wy;
-	m->wy = m->wy + bh;
+	mons->wy = mons->my;
+	mons->wh = mons->mh;
+	mons->wh -= bh;
+	mons->by = mons->wy;
+	mons->wy = mons->wy + bh;
 }
 
 void
