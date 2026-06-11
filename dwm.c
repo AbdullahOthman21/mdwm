@@ -99,7 +99,7 @@ typedef struct {
 
 typedef struct {
 	const char *symbol;
-	void (*arrange)(Monitor *);
+	void (*arrange)(void);
 } Layout;
 
 struct Monitor {
@@ -179,7 +179,7 @@ static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
 static void spawn(const Arg *arg);
 static void tag(const Arg *arg);
-static void tile(Monitor *m);
+static void tile(void);
 static void togglefloating(const Arg *arg);
 static void unfocus(Client *c, int setfocus);
 static void unmanage(Client *c, int destroyed);
@@ -339,7 +339,7 @@ arrangemon(Monitor *m)
 {
 	strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, sizeof m->ltsymbol);
 	if (m->lt[m->sellt]->arrange)
-		m->lt[m->sellt]->arrange(m);
+		m->lt[m->sellt]->arrange();
 }
 
 void
@@ -1491,29 +1491,29 @@ tag(const Arg *arg)
 }
 
 void
-tile(Monitor *m)
+tile(void)
 {
 	unsigned int i, n, h, mw, my, ty;
 	Client *c;
 
-	for (n = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), n++);
+	for (n = 0, c = nexttiled(mon->clients); c; c = nexttiled(c->next), n++);
 	if (n == 0)
 		return;
 
 	if (n > 1)
-		mw = m->ww * m->mfact;
+		mw = mon->ww * mon->mfact;
 	else
-		mw = m->ww;
-	for (i = my = ty = 0, c = nexttiled(m->clients); c; c = nexttiled(c->next), i++)
+		mw = mon->ww;
+	for (i = my = ty = 0, c = nexttiled(mon->clients); c; c = nexttiled(c->next), i++)
 		if (i < 1) {
-			h = (m->wh - my) / (MIN(n, 1) - i);
-			resize(c, m->wx, m->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
-			if (my + HEIGHT(c) < m->wh)
+			h = (mon->wh - my) / (MIN(n, 1) - i);
+			resize(c, mon->wx, mon->wy + my, mw - (2*c->bw), h - (2*c->bw), 0);
+			if (my + HEIGHT(c) < mon->wh)
 				my += HEIGHT(c);
 		} else {
-			h = (m->wh - ty) / (n - i);
-			resize(c, m->wx + mw, m->wy + ty, m->ww - mw - (2*c->bw), h - (2*c->bw), 0);
-			if (ty + HEIGHT(c) < m->wh)
+			h = (mon->wh - ty) / (n - i);
+			resize(c, mon->wx + mw, mon->wy + ty, mon->ww - mw - (2*c->bw), h - (2*c->bw), 0);
+			if (ty + HEIGHT(c) < mon->wh)
 				ty += HEIGHT(c);
 		}
 }

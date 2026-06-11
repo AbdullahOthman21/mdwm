@@ -10,8 +10,12 @@ static const char *dpms[] = { "xset", "dpms", "force", "off", NULL };
 
 #define brightness "/sys/class/backlight/intel_backlight/brightness"
 static const char *high_brightness[]   = { "sh", "-c", "echo 19200 | sudo tee "brightness, NULL };
-static const char *mid_brightness[]    = { "sh", "-c", "echo 5000  | sudo tee "brightness, NULL };
 static const char *low_brightness[]    = { "sh", "-c", "echo 100   | sudo tee "brightness, NULL };
+
+static const char *mid_brightness[] = {
+	"bash",
+	"-c",
+	"seq 500 500 $(< /sys/class/backlight/intel_backlight/max_brightness) | dmenu | sudo tee "brightness, NULL };
 
 static const char *screenshot[]        = { "sh", "-c", "maim    ~/$(date +%Y-%m-%d_%H-%M-%S).png", NULL };
 static const char *screenshot_region[] = { "sh", "-c", "maim -s ~/$(date +%Y-%m-%d_%H-%M-%S).png", NULL };
