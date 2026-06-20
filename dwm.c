@@ -154,13 +154,11 @@ static void killclient(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
-static void motionnotify(XEvent *e);
 static void movemouse(const Arg *arg);
 static Client *nexttiled(Client *c);
 static void pop(Client *c);
 static void propertynotify(XEvent *e);
 static void quit(const Arg *arg);
-static Monitor *recttomon(void);
 static void resize(Client *c, int x, int y, int w, int h, int interact);
 static void resizeclient(Client *c, int x, int y, int w, int h);
 static void resizemouse(const Arg *arg);
@@ -168,7 +166,6 @@ static void restack(void);
 static void run(void);
 static void scan(void);
 static int sendevent(Client *c, Atom proto);
-static void sendmon(Client *c, Monitor *m);
 static void setclientstate(Client *c, long state);
 static void setfocus(Client *c);
 static void setfullscreen(Client *c, int fullscreen);
@@ -202,7 +199,7 @@ static void zoom(const Arg *arg);
 
 /* variables */
 static const char broken[] = "broken";
-static char stext[256];
+static char stext[128];
 static int screen;
 static int sw, sh;           /* X display screen geometry width, height */
 static int bh;               /* bar height */
@@ -220,7 +217,6 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[KeyPress] = keypress,
 	[MappingNotify] = mappingnotify,
 	[MapRequest] = maprequest,
-	[MotionNotify] = motionnotify,
 	[PropertyNotify] = propertynotify,
 	[UnmapNotify] = unmapnotify
 };
@@ -938,28 +934,10 @@ maprequest(XEvent *e)
 }
 
 void
-motionnotify(XEvent *e)
-{
-	static Monitor *mon = NULL;
-	Monitor *m;
-	XMotionEvent *ev = &e->xmotion;
-
-	if (ev->window != root)
-		return;
-	if ((m = recttomon()) != mon && mon) {
-		unfocus(mon->sel, 1);
-		mon = m;
-		focus(NULL);
-	}
-	mon = m;
-}
-
-void
 movemouse(const Arg *arg)
 {
 	int x, y, ocx, ocy, nx, ny;
 	Client *c;
-	Monitor *m;
 	XEvent ev;
 	Time lasttime = 0;
 
@@ -1007,11 +985,6 @@ movemouse(const Arg *arg)
 		}
 	} while (ev.type != ButtonRelease);
 	XUngrabPointer(dpy, CurrentTime);
-	if ((m = recttomon()) != mon) {
-		sendmon(c, m);
-		mon = m;
-		focus(NULL);
-	}
 }
 
 Client *
@@ -1073,12 +1046,6 @@ quit(const Arg *arg)
 	running = 0;
 }
 
-Monitor *
-recttomon(void)
-{
-	return mon;
-}
-
 void
 resize(Client *c, int x, int y, int w, int h, int interact)
 {
@@ -1113,7 +1080,6 @@ resizemouse(const Arg *arg)
 {
 	int ocx, ocy, nw, nh;
 	Client *c;
-	Monitor *m;
 	XEvent ev;
 	Time lasttime = 0;
 
@@ -1158,11 +1124,6 @@ resizemouse(const Arg *arg)
 	XWarpPointer(dpy, None, c->win, 0, 0, 0, 0, c->w + c->bw - 1, c->h + c->bw - 1);
 	XUngrabPointer(dpy, CurrentTime);
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
-	if ((m = recttomon()) != mon) {
-		sendmon(c, m);
-		mon = m;
-		focus(NULL);
-	}
 }
 
 void
@@ -1226,24 +1187,6 @@ scan(void)
 		if (wins)
 			XFree(wins);
 	}
-}
-
-void
-sendmon(Client *c, Monitor *m)
-{
-	if (c->mon == m)
-		return;
-	unfocus(c, 1);
-	detach(c);
-	detachstack(c);
-	c->mon = m;
-	c->tags = m->tagset[m->seltags]; /* assign tags of target monitor */
-	attach(c);
-	attachstack(c);
-	if (c->isfullscreen)
-		resizeclient(c, m->mx, m->my, m->mw, m->mh);
-	focus(NULL);
-	arrange();
 }
 
 void
@@ -1807,7 +1750,7 @@ int
 main(void)
 {
 	if (!(dpy = XOpenDisplay(NULL)))
-		exit(1);
+		return 1;
 	checkotherwm();
 	setup();
 	scan();
