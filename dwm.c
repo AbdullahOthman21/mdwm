@@ -73,7 +73,6 @@ typedef struct {
 	const Arg arg;
 } Button;
 
-typedef struct Monitor Monitor;
 typedef struct Client Client;
 struct Client {
 	char name[256];
@@ -96,7 +95,7 @@ typedef struct {
 	const Arg arg;
 } Key;
 
-struct Monitor {
+typedef struct {
 	char ltsymbol[2];
 	float mfact;
 	int num;
@@ -110,7 +109,7 @@ struct Monitor {
 	Client *sel;
 	Client *stack;
 	Window barwin;
-};
+} Monitor;
 
 /* function declarations */
 static void applyrules(Client *c);
