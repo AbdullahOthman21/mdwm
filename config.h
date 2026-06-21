@@ -11,14 +11,10 @@ static const char *colors[][3]      = {
 /* tagging */
 static const char *tags[] = { "1", "2", "3" };
 
-/* layout(s) */
-static const int refreshrate = 120;  /* refresh rate (per second) for client move/resize */
-
 /* key definitions */
 #include "keys.h"
 
 /* button definitions */
-/* click can be ClkTagBar, ClkLtSymbol, ClkStatusText, ClkWinTitle, ClkClientWin, or ClkRootWin */
 static const Button buttons[] = {
 	/* click                event mask      button          function        argument */
 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
