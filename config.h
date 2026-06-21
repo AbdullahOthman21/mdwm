@@ -14,12 +14,6 @@ static const char *tags[] = { "1", "2", "3" };
 /* layout(s) */
 static const int refreshrate = 120;  /* refresh rate (per second) for client move/resize */
 
-static const Layout layouts[] = {
-	/* symbol   arrange function */
-	{ "T",      tile },
-	{ "F",      NULL },
-};
-
 /* key definitions */
 #include "keys.h"
 

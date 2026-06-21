@@ -96,13 +96,8 @@ typedef struct {
 	const Arg arg;
 } Key;
 
-typedef struct {
-	const char *symbol;
-	void (*arrange)(void);
-} Layout;
-
 struct Monitor {
-	char ltsymbol[16];
+	char ltsymbol[2];
 	float mfact;
 	int num;
 	int by;               /* bar geometry */
@@ -115,14 +110,13 @@ struct Monitor {
 	Client *sel;
 	Client *stack;
 	Window barwin;
-	const Layout *lt[2];
 };
 
 /* function declarations */
 static void applyrules(Client *c);
 static int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact);
 static void arrange(void);
-static void arrangemon(Monitor *m);
+static void arrangemon(void);
 static void attach(Client *c);
 static void attachstack(Client *c);
 static void buttonpress(XEvent *e);
@@ -168,7 +162,6 @@ static int sendevent(Client *c, Atom proto);
 static void setclientstate(Client *c, long state);
 static void setfocus(Client *c);
 static void setfullscreen(Client *c, int fullscreen);
-static void setlayout(const Arg *arg);
 static void setmfact(const Arg *arg);
 static void setup(void);
 static void seturgent(Client *c, int urg);
@@ -221,6 +214,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 };
 static Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1;
+static int tiling = 1;
 static Cur *cursor[CurLast];
 static Clr **scheme;
 static Display *dpy;
@@ -254,7 +248,6 @@ int
 applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 {
 	int baseismin;
-	Monitor *m = mon;
 
 	/* set minimum possible */
 	*w = MAX(1, *w);
@@ -269,20 +262,20 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 		if (*y + *h + 2 * c->bw < 0)
 			*y = 0;
 	} else {
-		if (*x >= m->wx + m->ww)
-			*x = m->wx + m->ww - WIDTH(c);
-		if (*y >= m->wy + m->wh)
-			*y = m->wy + m->wh - HEIGHT(c);
-		if (*x + *w + 2 * c->bw <= m->wx)
-			*x = m->wx;
-		if (*y + *h + 2 * c->bw <= m->wy)
-			*y = m->wy;
+		if (*x >= mon->wx + mon->ww)
+			*x = mon->wx + mon->ww - WIDTH(c);
+		if (*y >= mon->wy + mon->wh)
+			*y = mon->wy + mon->wh - HEIGHT(c);
+		if (*x + *w + 2 * c->bw <= mon->wx)
+			*x = mon->wx;
+		if (*y + *h + 2 * c->bw <= mon->wy)
+			*y = mon->wy;
 	}
 	if (*h < bh)
 		*h = bh;
 	if (*w < bh)
 		*w = bh;
-	if (c->isfloating || !mon->lt[mon->sellt]->arrange) {
+	if (c->isfloating || !tiling) {
 		if (!c->hintsvalid)
 			updatesizehints(c);
 		/* see last two sentences in ICCCM 4.1.2.3 */
@@ -322,16 +315,19 @@ void
 arrange(void)
 {
 	showhide(mon->stack);
-	arrangemon(mon);
+	arrangemon();
 	restack();
 }
 
 void
-arrangemon(Monitor *m)
+arrangemon(void)
 {
-	strncpy(m->ltsymbol, m->lt[m->sellt]->symbol, sizeof m->ltsymbol);
-	if (m->lt[m->sellt]->arrange)
-		m->lt[m->sellt]->arrange();
+	if (tiling)
+		mon->ltsymbol[0] = 'T';
+	else
+		mon->ltsymbol[0] = 'F';
+	if (tiling)
+		tile();
 }
 
 void
@@ -393,11 +389,10 @@ void
 cleanup(void)
 {
 	Arg a = {.ui = ~0};
-	Layout foo = { "", NULL };
 	size_t i;
 
 	view(&a);
-	mon->lt[mon->sellt] = &foo;
+	tiling = 0;
 	while (mon->stack)
 		unmanage(mon->stack, 0);
 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
@@ -472,7 +467,7 @@ configurerequest(XEvent *e)
 	if ((c = wintoclient(ev->window))) {
 		if (ev->value_mask & CWBorderWidth)
 			c->bw = ev->border_width;
-		else if (c->isfloating || !mon->lt[mon->sellt]->arrange) {
+		else if (c->isfloating || !tiling) {
 			m = mon;
 			if (ev->value_mask & CWX) {
 				c->oldx = c->x;
@@ -521,9 +516,7 @@ createmon(void)
 	m = calloc(1, sizeof(Monitor));
 	m->tagset[0] = m->tagset[1] = 1;
 	m->mfact = 0.55;
-	m->lt[0] = &layouts[0];
-	m->lt[1] = &layouts[1 % LENGTH(layouts)];
-	strncpy(m->ltsymbol, layouts[0].symbol, sizeof m->ltsymbol);
+	m->ltsymbol[0] = 'T';
 	return m;
 }
 
@@ -962,10 +955,10 @@ movemouse(const Arg *arg)
 				ny = mon->wy;
 			else if (abs((mon->wy + mon->wh) - (ny + HEIGHT(c))) < 32)
 				ny = mon->wy + mon->wh - HEIGHT(c);
-			if (!c->isfloating && mon->lt[mon->sellt]->arrange
+			if (!c->isfloating && tiling
 			&& (abs(nx - c->x) > 32 || abs(ny - c->y) > 32))
 				togglefloating(NULL);
-			if (!mon->lt[mon->sellt]->arrange || c->isfloating)
+			if (!tiling || c->isfloating)
 				resize(c, nx, ny, c->w, c->h, 1);
 			break;
 		}
@@ -1051,7 +1044,7 @@ resizeclient(Client *c, int x, int y, int w, int h)
 	wc.border_width = c->bw;
 	if ((nexttiled(mon->clients) == c && !nexttiled(c->next))
 	    && !c->isfullscreen && !c->isfloating
-	    && NULL != mon->lt[mon->sellt]->arrange) {
+	    && tiling) {
 		c->w = wc.width += c->bw * 2;
 		c->h = wc.height += c->bw * 2;
 		wc.border_width = 0;
@@ -1098,11 +1091,11 @@ resizemouse(const Arg *arg)
 			if (mon->wx + nw >= mon->wx && mon->wx + nw <= mon->wx + mon->ww
 			&& mon->wy + nh >= mon->wy && mon->wy + nh <= mon->wy + mon->wh)
 			{
-				if (!c->isfloating && mon->lt[mon->sellt]->arrange
+				if (!c->isfloating && tiling
 				&& (abs(nw - c->w) > 32 || abs(nh - c->h) > 32))
 					togglefloating(NULL);
 			}
-			if (!mon->lt[mon->sellt]->arrange || c->isfloating)
+			if (!tiling || c->isfloating)
 				resize(c, c->x, c->y, nw, nh, 1);
 			break;
 		}
@@ -1122,9 +1115,9 @@ restack(void)
 	drawbar();
 	if (!mon->sel)
 		return;
-	if (mon->sel->isfloating || !mon->lt[mon->sellt]->arrange)
+	if (mon->sel->isfloating || !tiling)
 		XRaiseWindow(dpy, mon->sel->win);
-	if (mon->lt[mon->sellt]->arrange) {
+	if (tiling) {
 		wc.stack_mode = Below;
 		wc.sibling = mon->barwin;
 		for (c = mon->stack; c; c = c->snext)
@@ -1247,27 +1240,13 @@ setfullscreen(Client *c, int fullscreen)
 	}
 }
 
-void
-setlayout(const Arg *arg)
-{
-	if (!arg || !arg->v || arg->v != mon->lt[mon->sellt])
-		mon->sellt ^= 1;
-	if (arg && arg->v)
-		mon->lt[mon->sellt] = (Layout *)arg->v;
-	strncpy(mon->ltsymbol, mon->lt[mon->sellt]->symbol, sizeof mon->ltsymbol);
-	if (mon->sel)
-		arrange();
-	else
-		drawbar();
-}
-
 /* arg > 1.0 will set mfact absolutely */
 void
 setmfact(const Arg *arg)
 {
 	float f;
 
-	if (!arg || !mon->lt[mon->sellt]->arrange)
+	if (!arg || !tiling)
 		return;
 	f = arg->f < 1.0 ? arg->f + mon->mfact : arg->f - 1.0;
 	if (f < 0.05 || f > 0.95)
@@ -1379,7 +1358,7 @@ showhide(Client *c)
 	if (ISVISIBLE(c)) {
 		/* show clients top down */
 		XMoveWindow(dpy, c->win, c->x, c->y);
-		if ((!mon->lt[mon->sellt]->arrange || c->isfloating) && !c->isfullscreen)
+		if ((!tiling || c->isfloating) && !c->isfullscreen)
 			resize(c, c->x, c->y, c->w, c->h, 0);
 		showhide(c->snext);
 	} else {
@@ -1725,7 +1704,7 @@ zoom(const Arg *arg)
 {
 	Client *c = mon->sel;
 
-	if (!mon->lt[mon->sellt]->arrange || !c || c->isfloating)
+	if (!tiling || !c || c->isfloating)
 		return;
 	if (c == nexttiled(mon->clients) && !(c = nexttiled(c->next)))
 		return;
