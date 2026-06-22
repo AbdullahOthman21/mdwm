@@ -13,12 +13,3 @@ static const char *tags[] = { "1", "2", "3" };
 
 /* key definitions */
 #include "keys.h"
-
-/* button definitions */
-static const Button buttons[] = {
-	/* click                event mask      button          function        argument */
-	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
-	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
-	{ ClkTagBar,            0,              Button1,        view,           {0} },
-};
-

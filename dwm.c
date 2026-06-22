@@ -56,7 +56,6 @@ enum { NetSupported, NetWMName, NetWMState, NetWMCheck,
        NetWMFullscreen, NetActiveWindow, NetWMWindowType,
        NetWMWindowTypeDialog, NetClientList, NetLast }; /* EWMH atoms */
 enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms */
-enum { ClkTagBar, ClkClientWin, ClkRootWin, ClkLast }; /* clicks */
 
 typedef union {
 	int i;
@@ -64,14 +63,6 @@ typedef union {
 	float f;
 	const void *v;
 } Arg;
-
-typedef struct {
-	unsigned int click;
-	unsigned int mask;
-	unsigned int button;
-	void (*func)(const Arg *arg);
-	const Arg arg;
-} Button;
 
 typedef struct Client Client;
 struct Client {
@@ -146,14 +137,14 @@ static void killclient(const Arg *arg);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
-static void movemouse(const Arg *arg);
+static void movemouse(void);
 static Client *nexttiled(Client *c);
 static void pop(Client *c);
 static void propertynotify(XEvent *e);
 static void quit(const Arg *arg);
 static void resize(Client *c, int x, int y, int w, int h, int interact);
 static void resizeclient(Client *c, int x, int y, int w, int h);
-static void resizemouse(const Arg *arg);
+static void resizemouse(void);
 static void restack(void);
 static void run(void);
 static void scan(void);
@@ -346,31 +337,32 @@ attachstack(Client *c)
 void
 buttonpress(XEvent *e)
 {
-	unsigned int i, x, click;
+	unsigned int i, x;
 	Arg arg = {0};
 	Client *c;
 	XButtonPressedEvent *ev = &e->xbutton;
 
-	click = ClkRootWin;
 	if (ev->window == mon->barwin) {
 		i = x = 0;
 		do
 			x += TEXTW(tags[i]);
 		while (ev->x >= x && ++i < LENGTH(tags));
-		if (i < LENGTH(tags)) {
-			click = ClkTagBar;
+		if (i < LENGTH(tags))
 			arg.ui = 1 << i;
-		}
+		view(&arg);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
 		restack();
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
-		click = ClkClientWin;
+
+		if (CLEANMASK(ev->state) != MODKEY)
+			return;
+
+		if (ev->button == Button1)
+			movemouse();
+		else if (ev->button == Button3)
+			resizemouse();
 	}
-	for (i = 0; i < LENGTH(buttons); i++)
-		if (click == buttons[i].click && buttons[i].func && buttons[i].button == ev->button
-		&& CLEANMASK(buttons[i].mask) == CLEANMASK(ev->state))
-			buttons[i].func(click == ClkTagBar && buttons[i].arg.i == 0 ? &arg : &buttons[i].arg);
 }
 
 void
@@ -754,19 +746,14 @@ grabbuttons(Client *c, int focused)
 {
 	updatenumlockmask();
 	{
-		unsigned int i, j;
-		unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
 		XUngrabButton(dpy, AnyButton, AnyModifier, c->win);
 		if (!focused)
 			XGrabButton(dpy, AnyButton, AnyModifier, c->win, False,
 				BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
-		for (i = 0; i < LENGTH(buttons); i++)
-			if (buttons[i].click == ClkClientWin)
-				for (j = 0; j < LENGTH(modifiers); j++)
-					XGrabButton(dpy, buttons[i].button,
-						buttons[i].mask | modifiers[j],
-						c->win, False, BUTTONMASK,
-						GrabModeAsync, GrabModeSync, None, None);
+		XGrabButton(dpy, Button1, MODKEY, c->win, False,
+			BUTTONMASK, GrabModeAsync, GrabModeSync, None, None);
+		XGrabButton(dpy, Button3, MODKEY, c->win, False,
+			BUTTONMASK, GrabModeAsync, GrabModeSync, None, None);
 	}
 }
 
@@ -912,7 +899,7 @@ maprequest(XEvent *e)
 }
 
 void
-movemouse(const Arg *arg)
+movemouse(void)
 {
 	int x, y, ocx, ocy, nx, ny;
 	Client *c;
@@ -1054,7 +1041,7 @@ resizeclient(Client *c, int x, int y, int w, int h)
 }
 
 void
-resizemouse(const Arg *arg)
+resizemouse(void)
 {
 	int ocx, ocy, nw, nh;
 	Client *c;
