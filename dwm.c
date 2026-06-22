@@ -87,7 +87,6 @@ typedef struct {
 } Key;
 
 typedef struct {
-	char ltsymbol[2];
 	float mfact;
 	int num;
 	int by;               /* bar geometry */
@@ -313,10 +312,6 @@ void
 arrangemon(void)
 {
 	if (tiling)
-		mon->ltsymbol[0] = 'T';
-	else
-		mon->ltsymbol[0] = 'F';
-	if (tiling)
 		tile();
 }
 
@@ -507,7 +502,6 @@ createmon(void)
 	m = calloc(1, sizeof(Monitor));
 	m->tagset[0] = m->tagset[1] = 1;
 	m->mfact = 0.55;
-	m->ltsymbol[0] = 'T';
 	return m;
 }
 
@@ -575,7 +569,7 @@ drawbar(void)
 		x += w;
 	}
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	x = drw_text(drw, x, 0, w, bh, lrpad / 2, mon->ltsymbol, 0);
+	x = drw_text(drw, x, 0, w, bh, lrpad / 2, "T", 0);
 
 	if ((w = mon->ww - tw - x) > bh) {
 		if (mon->sel) {
