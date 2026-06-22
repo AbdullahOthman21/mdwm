@@ -332,18 +332,13 @@ attachstack(Client *c)
 void
 buttonpress(XEvent *e)
 {
-	unsigned int i, x;
+	int w = TEXTW("1");
 	Arg arg = {0};
 	Client *c;
 	XButtonPressedEvent *ev = &e->xbutton;
 
-	if (ev->window == mon->barwin) {
-		i = x = 0;
-		do
-			x += TEXTW(tags[i]);
-		while (ev->x >= x && ++i < LENGTH(tags));
-		if (i < LENGTH(tags))
-			arg.ui = 1 << i;
+	if (ev->window == mon->barwin && ev->x / w < 3) {
+		arg.ui = 1 << (ev->x / w);
 		view(&arg);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
