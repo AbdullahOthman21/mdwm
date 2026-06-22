@@ -762,8 +762,7 @@ grabkeys(void)
 {
 	updatenumlockmask();
 	{
-		unsigned int i, j, k;
-		unsigned int modifiers[] = { 0, LockMask, numlockmask, numlockmask|LockMask };
+		unsigned int i, k;
 		int start, end, skip;
 		KeySym *syms;
 
@@ -776,11 +775,7 @@ grabkeys(void)
 			for (i = 0; i < LENGTH(keys); i++)
 				/* skip modifier codes, we do that ourselves */
 				if (keys[i].keysym == syms[(k - start) * skip])
-					for (j = 0; j < LENGTH(modifiers); j++)
-						XGrabKey(dpy, k,
-							 keys[i].mod | modifiers[j],
-							 root, True,
-							 GrabModeAsync, GrabModeAsync);
+					XGrabKey(dpy, k, keys[i].mod, root, True, GrabModeAsync, GrabModeAsync);
 		XFree(syms);
 	}
 }
