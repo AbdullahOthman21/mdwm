@@ -105,7 +105,6 @@ typedef struct {
 static void applyrules(Client *c);
 static int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact);
 static void arrange(void);
-static void arrangemon(void);
 static void attach(Client *c);
 static void attachstack(Client *c);
 static void buttonpress(XEvent *e);
@@ -203,7 +202,6 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 };
 static Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1;
-static int tiling = 1;
 static Cur *cursor[CurLast];
 static Clr **scheme;
 static Display *dpy;
@@ -264,7 +262,7 @@ applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 		*h = bh;
 	if (*w < bh)
 		*w = bh;
-	if (c->isfloating || !tiling) {
+	if (c->isfloating) {
 		if (!c->hintsvalid)
 			updatesizehints(c);
 		/* see last two sentences in ICCCM 4.1.2.3 */
@@ -304,15 +302,8 @@ void
 arrange(void)
 {
 	showhide(mon->stack);
-	arrangemon();
+	tile();
 	restack();
-}
-
-void
-arrangemon(void)
-{
-	if (tiling)
-		tile();
 }
 
 void
@@ -373,7 +364,6 @@ cleanup(void)
 	size_t i;
 
 	view(&a);
-	tiling = 0;
 	while (mon->stack)
 		unmanage(mon->stack, 0);
 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
@@ -448,7 +438,7 @@ configurerequest(XEvent *e)
 	if ((c = wintoclient(ev->window))) {
 		if (ev->value_mask & CWBorderWidth)
 			c->bw = ev->border_width;
-		else if (c->isfloating || !tiling) {
+		else if (c->isfloating) {
 			m = mon;
 			if (ev->value_mask & CWX) {
 				c->oldx = c->x;
@@ -925,10 +915,10 @@ movemouse(void)
 				ny = mon->wy;
 			else if (abs((mon->wy + mon->wh) - (ny + HEIGHT(c))) < 32)
 				ny = mon->wy + mon->wh - HEIGHT(c);
-			if (!c->isfloating && tiling
+			if (!c->isfloating
 			&& (abs(nx - c->x) > 32 || abs(ny - c->y) > 32))
 				togglefloating(NULL);
-			if (!tiling || c->isfloating)
+			if (c->isfloating)
 				resize(c, nx, ny, c->w, c->h, 1);
 			break;
 		}
@@ -1013,8 +1003,7 @@ resizeclient(Client *c, int x, int y, int w, int h)
 	c->oldh = c->h; c->h = wc.height = h;
 	wc.border_width = c->bw;
 	if ((nexttiled(mon->clients) == c && !nexttiled(c->next))
-	    && !c->isfullscreen && !c->isfloating
-	    && tiling) {
+	    && !c->isfullscreen && !c->isfloating) {
 		c->w = wc.width += c->bw * 2;
 		c->h = wc.height += c->bw * 2;
 		wc.border_width = 0;
@@ -1061,11 +1050,11 @@ resizemouse(void)
 			if (mon->wx + nw >= mon->wx && mon->wx + nw <= mon->wx + mon->ww
 			&& mon->wy + nh >= mon->wy && mon->wy + nh <= mon->wy + mon->wh)
 			{
-				if (!c->isfloating && tiling
+				if (!c->isfloating
 				&& (abs(nw - c->w) > 32 || abs(nh - c->h) > 32))
 					togglefloating(NULL);
 			}
-			if (!tiling || c->isfloating)
+			if (c->isfloating)
 				resize(c, c->x, c->y, nw, nh, 1);
 			break;
 		}
@@ -1085,17 +1074,15 @@ restack(void)
 	drawbar();
 	if (!mon->sel)
 		return;
-	if (mon->sel->isfloating || !tiling)
+	if (mon->sel->isfloating)
 		XRaiseWindow(dpy, mon->sel->win);
-	if (tiling) {
-		wc.stack_mode = Below;
-		wc.sibling = mon->barwin;
-		for (c = mon->stack; c; c = c->snext)
-			if (!c->isfloating && ISVISIBLE(c)) {
-				XConfigureWindow(dpy, c->win, CWSibling|CWStackMode, &wc);
-				wc.sibling = c->win;
-			}
-	}
+	wc.stack_mode = Below;
+	wc.sibling = mon->barwin;
+	for (c = mon->stack; c; c = c->snext)
+		if (!c->isfloating && ISVISIBLE(c)) {
+			XConfigureWindow(dpy, c->win, CWSibling|CWStackMode, &wc);
+			wc.sibling = c->win;
+		}
 	XSync(dpy, False);
 	while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 }
@@ -1216,7 +1203,7 @@ setmfact(const Arg *arg)
 {
 	float f;
 
-	if (!arg || !tiling)
+	if (!arg)
 		return;
 	f = arg->f < 1.0 ? arg->f + mon->mfact : arg->f - 1.0;
 	if (f < 0.05 || f > 0.95)
@@ -1328,7 +1315,7 @@ showhide(Client *c)
 	if (ISVISIBLE(c)) {
 		/* show clients top down */
 		XMoveWindow(dpy, c->win, c->x, c->y);
-		if ((!tiling || c->isfloating) && !c->isfullscreen)
+		if ((c->isfloating) && !c->isfullscreen)
 			resize(c, c->x, c->y, c->w, c->h, 0);
 		showhide(c->snext);
 	} else {
@@ -1674,7 +1661,7 @@ zoom(const Arg *arg)
 {
 	Client *c = mon->sel;
 
-	if (!tiling || !c || c->isfloating)
+	if (!c || c->isfloating)
 		return;
 	if (c == nexttiled(mon->clients) && !(c = nexttiled(c->next)))
 		return;
