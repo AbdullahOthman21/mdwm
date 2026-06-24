@@ -766,7 +766,7 @@ keypress(XEvent *e)
 	ev = &e->xkey;
 	keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->keycode, 0);
 	for (i = 0; i < LENGTH(keys); i++)
-		if (keysym == keys[i].keysym && keys[i].mod == ev->state) {
+		if (keys[i].mod == ev->state && keysym == keys[i].keysym) {
 			keys[i].func(&(keys[i].arg));
 			return;
 		}
