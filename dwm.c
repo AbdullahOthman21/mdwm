@@ -41,7 +41,6 @@
 #define MIN(A, B)               ((A) < (B) ? (A) : (B))
 #define LENGTH(X)               (sizeof (X) / sizeof (X)[0])
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
-#define CLEANMASK(mask)         (mask & ~(numlockmask|LockMask) & (ShiftMask|ControlMask|Mod1Mask|Mod2Mask|Mod3Mask|Mod4Mask|Mod5Mask))
 #define ISVISIBLE(C)            ((C->tags & mon->tagset[mon->seltags]))
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
@@ -336,7 +335,7 @@ buttonpress(XEvent *e)
 		restack();
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 
-		if (CLEANMASK(ev->state) != MODKEY)
+		if (ev->state != MODKEY)
 			return;
 
 		if (ev->button == Button1)
@@ -767,9 +766,10 @@ keypress(XEvent *e)
 	ev = &e->xkey;
 	keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->keycode, 0);
 	for (i = 0; i < LENGTH(keys); i++)
-		if (keysym == keys[i].keysym
-		&& CLEANMASK(keys[i].mod) == CLEANMASK(ev->state))
+		if (keysym == keys[i].keysym && keys[i].mod == ev->state) {
 			keys[i].func(&(keys[i].arg));
+			return;
+		}
 }
 
 void
