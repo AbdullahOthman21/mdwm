@@ -87,12 +87,10 @@ typedef struct {
 
 typedef struct {
 	float mfact;
-	int num;
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
 	unsigned int seltags;
-	unsigned int sellt;
 	unsigned int tagset[2];
 	Client *clients;
 	Client *sel;
