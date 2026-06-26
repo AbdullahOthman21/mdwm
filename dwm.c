@@ -553,7 +553,7 @@ drawbar(void)
 		x += w;
 	}
 	drw_setscheme(drw, scheme[SchemeNorm]);
-	x = drw_text(drw, x, 0, w, bh, lrpad / 2, "T", 0);
+	x = drw_text(drw, x, 0, w, bh, lrpad / 2, "|", 0);
 
 	if ((w = mon->ww - tw - x) > bh) {
 		if (mon->sel) {
