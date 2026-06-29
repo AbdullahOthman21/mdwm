@@ -1,5 +1,3 @@
-/* See LICENSE file for copyright and license details. */
-
 /* appearance */
 static const char *fonts[]          = { "JetBrainsMonoNL Nerd Font:size=14" };
 static const char *colors[][3]      = {
