@@ -174,6 +174,7 @@ static void (*handler[LASTEvent]) (XEvent *) = {
 	[PropertyNotify] = propertynotify,
 	[UnmapNotify] = unmapnotify
 };
+static int one_char_width;
 static Atom wmatom[WMLast], netatom[NetLast];
 static int running = 1;
 static Cur *cursor[CurLast];
@@ -294,13 +295,12 @@ attachstack(Client *c)
 void
 buttonpress(XEvent *e)
 {
-	int w = TEXTW("1");
 	Arg arg = {0};
 	Client *c;
 	XButtonPressedEvent *ev = &e->xbutton;
 
-	if (ev->window == mon.barwin && ev->x / w < 3) {
-		arg.ui = 1 << (ev->x / w);
+	if (ev->window == mon.barwin && ev->x / one_char_width < 3) {
+		arg.ui = 1 << (ev->x / one_char_width);
 		view(&arg);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
@@ -481,7 +481,7 @@ detachstack(Client *c)
 void
 drawbar(void)
 {
-	int x, w, tw = 0;
+	int x = 0, w = one_char_width, tw = 0;
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
 	unsigned int i, occ = 0, urg = 0;
@@ -497,8 +497,6 @@ drawbar(void)
 		if (c->isurgent)
 			urg |= c->tags;
 	}
-	x = 0;
-	w = TEXTW(tags[0]);
 	for (i = 0; i < 3; i++) {
 		drw_setscheme(drw, scheme[mon.tagset[mon.seltags] & 1 << i ? SchemeSel : SchemeNorm]);
 		drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg & 1 << i);
@@ -1045,6 +1043,7 @@ run(void)
 {
 	XEvent ev;
 	/* main event loop */
+	one_char_width = TEXTW("1");
 	XSync(dpy, False);
 	while (running && !XNextEvent(dpy, &ev))
 		if (handler[ev.type])
