@@ -19,11 +19,10 @@
 #define MIN(A, B)               ((A) < (B) ? (A) : (B))
 #define LENGTH(X)               (sizeof (X) / sizeof (X)[0])
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
-#define ISVISIBLE(C)            ((C->tags & mon.tagset[mon.seltags]))
+#define ISVISIBLE(C)            ((C->tag == mon.seltag))
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
 #define WIDTH(X)                ((X)->w + 2 * (X)->bw)
 #define HEIGHT(X)               ((X)->h + 2 * (X)->bw)
-#define TAGMASK                 ((1 << 3) - 1)
 #define TEXTW(X)                (drw_fontset_getwidth(drw, (X)) + lrpad)
 
 /* enums */
@@ -49,7 +48,7 @@ struct Client {
 	int oldx, oldy, oldw, oldh;
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
 	int bw, oldbw;
-	unsigned int tags;
+	int tag;
 	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
 	Client *next;
 	Client *snext;
@@ -68,8 +67,7 @@ typedef struct {
 	int by;               /* bar geometry */
 	int mx, my, mw, mh;   /* screen size */
 	int wx, wy, ww, wh;   /* window area  */
-	unsigned int seltags;
-	unsigned int tagset[2];
+	int seltag;
 	Client *clients;
 	Client *sel;
 	Client *stack;
@@ -200,7 +198,7 @@ applyrules(Client *c)
 		XFree(ch.res_class);
 	if (ch.res_name)
 		XFree(ch.res_name);
-	c->tags = mon.tagset[mon.seltags];
+	c->tag = mon.seltag;
 }
 
 int
@@ -300,7 +298,7 @@ buttonpress(XEvent *e)
 	XButtonPressedEvent *ev = &e->xbutton;
 
 	if (ev->window == mon.barwin && ev->x / one_char_width < 3) {
-		arg.ui = 1 << (ev->x / one_char_width);
+		arg.i = ev->x / one_char_width;
 		view(&arg);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
@@ -331,10 +329,8 @@ checkotherwm(void)
 void
 cleanup(void)
 {
-	Arg a = {.ui = ~0};
 	size_t i;
 
-	view(&a);
 	while (mon.stack)
 		unmanage(mon.stack, 0);
 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
@@ -481,10 +477,13 @@ detachstack(Client *c)
 void
 drawbar(void)
 {
+	const char *tags[] = { "1", "2", "3" };
 	int x = 0, w = one_char_width, tw = 0;
 	int boxs = drw->fonts->h / 9;
 	int boxw = drw->fonts->h / 6 + 2;
-	unsigned int i, occ = 0, urg = 0;
+	int i;
+	int occ[3] = {0};
+	int urg[3] = {0};
 	Client *c;
 
 	/* draw status first so it can be overdrawn by tags later */
@@ -493,17 +492,17 @@ drawbar(void)
 	drw_text(drw, mon.ww - tw, 0, tw, bh, 0, stext, 0);
 
 	for (c = mon.clients; c; c = c->next) {
-		occ |= c->tags;
+		occ[c->tag] = 1;
 		if (c->isurgent)
-			urg |= c->tags;
+			urg[c->tag] = 1;
 	}
 	for (i = 0; i < 3; i++) {
-		drw_setscheme(drw, scheme[mon.tagset[mon.seltags] & 1 << i ? SchemeSel : SchemeNorm]);
-		drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg & 1 << i);
-		if (occ & 1 << i)
+		drw_setscheme(drw, scheme[mon.seltag == i ? SchemeSel : SchemeNorm]);
+		drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg[i]);
+		if (occ[i])
 			drw_rect(drw, x + boxs, boxs, boxw, boxw,
-				mon.sel && mon.sel->tags & 1 << i,
-				urg & 1 << i);
+				mon.sel && mon.sel->tag == i,
+				urg[i]);
 		x += w;
 	}
 	drw_setscheme(drw, scheme[SchemeNorm]);
@@ -760,7 +759,7 @@ manage(Window w, XWindowAttributes *wa)
 
 	updatetitle(c);
 	if (XGetTransientForHint(dpy, w, &trans) && (t = wintoclient(trans))) {
-		c->tags = t->tags;
+		c->tag = t->tag;
 	} else {
 		applyrules(c);
 	}
@@ -1190,7 +1189,7 @@ setup(void)
 		exit(1);
 	lrpad = drw->fonts->h;
 	bh = drw->fonts->h + 2;
-	mon.tagset[0] = mon.tagset[1] = 1;
+	mon.seltag = 0;
 	mon.mfact = 0.55;
 	mon.mw = mon.ww = sw;
 	mon.mh = mon.wh = sh;
@@ -1298,8 +1297,8 @@ spawn(const Arg *arg)
 void
 tag(const Arg *arg)
 {
-	if (mon.sel && arg->ui & TAGMASK) {
-		mon.sel->tags = arg->ui & TAGMASK;
+	if (mon.sel) {
+		mon.sel->tag = arg->i;
 		focus(NULL);
 		arrange();
 	}
@@ -1550,11 +1549,9 @@ updatewmhints(Client *c)
 void
 view(const Arg *arg)
 {
-	if ((arg->ui & TAGMASK) == mon.tagset[mon.seltags])
+	if (arg->i == mon.seltag)
 		return;
-	mon.seltags ^= 1; /* toggle sel tagset */
-	if (arg->ui & TAGMASK)
-		mon.tagset[mon.seltags] = arg->ui & TAGMASK;
+	mon.seltag = arg->i;
 	focus(NULL);
 	arrange();
 }

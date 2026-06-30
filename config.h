@@ -6,8 +6,5 @@ static const char *colors[][3]      = {
 	[SchemeSel]  = { "#eeeeee", "#222222", "#fabd2f"  },
 };
 
-/* tagging */
-static const char *tags[] = { "1", "2", "3" };
-
 /* key definitions */
 #include "keys.h"

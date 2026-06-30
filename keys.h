@@ -1,7 +1,7 @@
 #define MODKEY Mod4Mask
 #define TAGKEYS(KEY,TAG) \
-	{ MODKEY,                       KEY,      view,           {.ui = 1 << TAG} }, \
-	{ MODKEY|ShiftMask,             KEY,      tag,            {.ui = 1 << TAG} },
+	{ MODKEY,                       KEY,      view,           {.i = TAG} }, \
+	{ MODKEY|ShiftMask,             KEY,      tag,            {.i = TAG} },
 
 static const char *dmenucmd[] = { "dmenu_run",  NULL };
 static const char *termcmd[]  = { "st",         NULL };
