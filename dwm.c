@@ -131,7 +131,6 @@ static void togglefloating(const Arg *arg);
 static void unfocus(Client *c, int setfocus);
 static void unmanage(Client *c, int destroyed);
 static void unmapnotify(XEvent *e);
-static void updatebarpos(void);
 static void updatebars(void);
 static void updateclientlist(void);
 static void updatenumlockmask(void);
@@ -1197,7 +1196,11 @@ setup(void)
 	mon.mfact = 0.55;
 	mon.mw = mon.ww = sw;
 	mon.mh = mon.wh = sh;
-	updatebarpos();
+	mon.wy = mon.my;
+	mon.wh = mon.mh;
+	mon.wh -= bh;
+	mon.by = mon.wy;
+	mon.wy = mon.wy + bh;
 
 	/* init atoms */
 	utf8string = XInternAtom(dpy, "UTF8_STRING", False);
@@ -1419,16 +1422,6 @@ updatebars(void)
 	XDefineCursor(dpy, mon.barwin, cursor[CurNormal]->cursor);
 	XMapRaised(dpy, mon.barwin);
 	XSetClassHint(dpy, mon.barwin, &ch);
-}
-
-void
-updatebarpos(void)
-{
-	mon.wy = mon.my;
-	mon.wh = mon.mh;
-	mon.wh -= bh;
-	mon.by = mon.wy;
-	mon.wy = mon.wy + bh;
 }
 
 void
