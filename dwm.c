@@ -81,7 +81,6 @@ static void attachstack(Client *c);
 static void buttonpress(XEvent *e);
 static void checkotherwm(void);
 static void cleanup(void);
-static void cleanupmon(void);
 static void clientmessage(XEvent *e);
 static void configure(Client *c);
 static void configurerequest(XEvent *e);
@@ -331,7 +330,8 @@ cleanup(void)
 	while (mon.stack)
 		unmanage(mon.stack, 0);
 	XUngrabKey(dpy, AnyKey, AnyModifier, root);
-	cleanupmon();
+	XUnmapWindow(dpy, mon.barwin);
+	XDestroyWindow(dpy, mon.barwin);
 	for (i = 0; i < CurLast; i++)
 		drw_cur_free(drw, cursor[i]);
 	drw_scm_free(drw, scheme[0], 3);
@@ -341,13 +341,6 @@ cleanup(void)
 	XSync(dpy, False);
 	XSetInputFocus(dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
 	XDeleteProperty(dpy, root, netatom[NetActiveWindow]);
-}
-
-void
-cleanupmon(void)
-{
-	XUnmapWindow(dpy, mon.barwin);
-	XDestroyWindow(dpy, mon.barwin);
 }
 
 void
