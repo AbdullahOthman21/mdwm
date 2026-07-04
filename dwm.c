@@ -529,9 +529,7 @@ enternotify(XEvent *e)
 void
 expose(XEvent *e)
 {
-	XExposeEvent *ev = &e->xexpose;
-
-	if (ev->count == 0)
+	if (e->xexpose.count == 0)
 		drawbar();
 }
 
