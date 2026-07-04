@@ -16,7 +16,6 @@
 /* macros */
 #define MAX(A, B)               ((A) > (B) ? (A) : (B))
 #define MIN(A, B)               ((A) < (B) ? (A) : (B))
-#define LENGTH(X)               (sizeof (X) / sizeof (X)[0])
 #define BUTTONMASK              (ButtonPressMask|ButtonReleaseMask)
 #define ISVISIBLE(C)            ((C->tag == mon.seltag))
 #define MOUSEMASK               (BUTTONMASK|PointerMotionMask)
@@ -700,7 +699,7 @@ grabkeys(void)
 		if (!syms)
 			return;
 		for (k = start; k <= end; k++)
-			for (i = 0; i < LENGTH(keys); i++)
+			for (i = 0; i < _Countof(keys); i++)
 				/* skip modifier codes, we do that ourselves */
 				if (keys[i].keysym == syms[(k - start) * skip])
 					XGrabKey(dpy, k, keys[i].mod, root, True, GrabModeAsync, GrabModeAsync);
@@ -717,7 +716,7 @@ keypress(XEvent *e)
 
 	ev = &e->xkey;
 	keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->keycode, 0);
-	for (i = 0; i < LENGTH(keys); i++)
+	for (i = 0; i < _Countof(keys); i++)
 		if (keys[i].mod == ev->state && keysym == keys[i].keysym) {
 			keys[i].func(&(keys[i].arg));
 			return;

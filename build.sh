@@ -1,5 +1,5 @@
 CFLAGS="\
--pipe -std=c99 -pedantic -Wall -Wno-deprecated-declarations -Wunused-macros -Os \
+-pipe -std=c99 -Wall -Wno-deprecated-declarations -Wunused-macros -Os \
 -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700L \
 -I/usr/include/freetype2 \
 "
