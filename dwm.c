@@ -1318,10 +1318,10 @@ tile(void)
 	if (n == 0)
 		return;
 
-	if (n > 1)
-		mw = mon.ww * mon.mfact;
-	else
+	if (n == 1)
 		mw = mon.ww;
+	else
+		mw = mon.ww * mon.mfact;
 	for (i = my = ty = 0, c = nexttiled(mon.clients); c; c = nexttiled(c->next), i++)
 		if (i < 1) {
 			h = (mon.wh - my) / (MIN(n, 1) - i);
