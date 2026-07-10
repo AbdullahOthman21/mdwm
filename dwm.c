@@ -33,7 +33,6 @@ enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms *
 
 typedef union {
 	int i;
-	unsigned int ui;
 	float f;
 	const void *v;
 } Arg;
@@ -293,8 +292,7 @@ buttonpress(XEvent *e)
 	Client *c;
 	XButtonPressedEvent *ev = &e->xbutton;
 
-	if (ev->window == mon.barwin && ev->x / one_char_width < 3) {
-		arg.i = ev->x / one_char_width;
+	if (ev->window == mon.barwin && (arg.i = ev->x / one_char_width) < 3) {
 		view(&arg);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
