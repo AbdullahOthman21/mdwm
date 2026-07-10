@@ -148,7 +148,8 @@ static void zoom(const Arg *arg);
 static const char broken[] = "broken";
 static char stext[128];
 static int screen;
-static int sw, sh;           /* X display screen geometry width, height */
+#define sw 1920
+#define sh 1080
 static int bh;               /* bar height */
 static int lrpad;            /* sum of left and right padding for text */
 static int (*xerrorxlib)(Display *, XErrorEvent *);
@@ -1173,8 +1174,6 @@ setup(void)
 
 	/* init screen */
 	screen = DefaultScreen(dpy);
-	sw = DisplayWidth(dpy, screen);
-	sh = DisplayHeight(dpy, screen);
 	root = RootWindow(dpy, screen);
 	drw = drw_create(dpy, screen, root, sw, sh);
 	if (!drw_fontset_create(drw, fonts, 1))
