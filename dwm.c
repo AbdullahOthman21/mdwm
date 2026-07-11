@@ -729,9 +729,9 @@ manage(Window w, XWindowAttributes *wa)
 	c->win = w;
 
 	XGetClassHint(dpy, w, &ch);
-	if (ch.res_class && (!strcmp(ch.res_class, "mpv") || !strcmp(ch.res_class, "Nsxiv")))
-		c->isfloating = 1;
 	if (ch.res_class) {
+		if (!strcmp(ch.res_class, "mpv") || !strcmp(ch.res_class, "Nsxiv"))
+			c->isfloating = 1;
 		strcpy(c->name, ch.res_class);
 		XFree(ch.res_class);
 	}
