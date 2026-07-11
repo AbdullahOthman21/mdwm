@@ -39,7 +39,7 @@ typedef union {
 
 typedef struct Client Client;
 struct Client {
-	char name[256];
+	char name[64];
 	float mina, maxa;
 	int x, y, w, h;
 	int oldx, oldy, oldw, oldh;
@@ -133,7 +133,6 @@ static void updateclientlist(void);
 static void updatenumlockmask(void);
 static void updatesizehints(Client *c);
 static void updatestatus(void);
-static void updatetitle(Client *c);
 static void updatewindowtype(Client *c);
 static void updatewmhints(Client *c);
 static void view(const Arg *arg);
@@ -144,7 +143,6 @@ static int xerrorstart(Display *dpy, XErrorEvent *ee);
 static void zoom(const Arg *arg);
 
 /* variables */
-static const char broken[] = "broken";
 static char stext[128];
 static int screen;
 #define sw 1920
@@ -730,12 +728,13 @@ manage(Window w, XWindowAttributes *wa)
 	c->tag = mon.seltag;
 	c->win = w;
 
-	updatetitle(c);
 	XGetClassHint(dpy, w, &ch);
 	if (ch.res_class && (!strcmp(ch.res_class, "mpv") || !strcmp(ch.res_class, "Nsxiv")))
 		c->isfloating = 1;
-	if (ch.res_class)
+	if (ch.res_class) {
+		strcpy(c->name, ch.res_class);
 		XFree(ch.res_class);
+	}
 	if (ch.res_name)
 		XFree(ch.res_name);
 
@@ -893,11 +892,6 @@ propertynotify(XEvent *e)
 			updatewmhints(c);
 			drawbar();
 			break;
-		}
-		if (ev->atom == XA_WM_NAME || ev->atom == netatom[NetWMName]) {
-			updatetitle(c);
-			if (c == mon.sel)
-				drawbar();
 		}
 		if (ev->atom == netatom[NetWMWindowType])
 			updatewindowtype(c);
@@ -1477,15 +1471,6 @@ updatestatus(void)
 {
 	gettextprop(root, XA_WM_NAME, stext, sizeof(stext));
 	drawbar();
-}
-
-void
-updatetitle(Client *c)
-{
-	if (!gettextprop(c->win, netatom[NetWMName], c->name, sizeof c->name))
-		gettextprop(c->win, XA_WM_NAME, c->name, sizeof c->name);
-	if (c->name[0] == '\0') /* hack to mark broken clients */
-		strcpy(c->name, broken);
 }
 
 void
