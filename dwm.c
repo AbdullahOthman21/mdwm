@@ -72,7 +72,6 @@ typedef struct {
 } Monitor;
 
 /* function declarations */
-static void applyrules(Client *c);
 static int applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact);
 static void arrange(void);
 static void attach(Client *c);
@@ -182,21 +181,6 @@ static Window root, wmcheckwin;
 #include "keys.h"
 
 /* function implementations */
-void
-applyrules(Client *c)
-{
-	XClassHint ch = { NULL, NULL };
-
-	XGetClassHint(dpy, c->win, &ch);
-	if (ch.res_class && (!strcmp(ch.res_class, "mpv") || !strcmp(ch.res_class, "Nsxiv")))
-		c->isfloating = 1;
-	if (ch.res_class)
-		XFree(ch.res_class);
-	if (ch.res_name)
-		XFree(ch.res_name);
-	c->tag = mon.seltag;
-}
-
 int
 applysizehints(Client *c, int *x, int *y, int *w, int *h, int interact)
 {
@@ -731,25 +715,29 @@ killclient(const Arg *arg)
 void
 manage(Window w, XWindowAttributes *wa)
 {
-	Client *c, *t = NULL;
+	Client *c;
 	Window trans = None;
 	XWindowChanges wc;
+	XClassHint ch = { NULL, NULL };
 
 	c = calloc(1, sizeof(Client));
-	c->win = w;
-	/* geometry */
+
 	c->x = c->oldx = wa->x;
 	c->y = c->oldy = wa->y;
 	c->w = c->oldw = wa->width;
 	c->h = c->oldh = wa->height;
 	c->oldbw = wa->border_width;
+	c->tag = mon.seltag;
+	c->win = w;
 
 	updatetitle(c);
-	if (XGetTransientForHint(dpy, w, &trans) && (t = wintoclient(trans))) {
-		c->tag = t->tag;
-	} else {
-		applyrules(c);
-	}
+	XGetClassHint(dpy, w, &ch);
+	if (ch.res_class && (!strcmp(ch.res_class, "mpv") || !strcmp(ch.res_class, "Nsxiv")))
+		c->isfloating = 1;
+	if (ch.res_class)
+		XFree(ch.res_class);
+	if (ch.res_name)
+		XFree(ch.res_name);
 
 	if (c->x + WIDTH(c) > mon.wx + mon.ww)
 		c->x = mon.wx + mon.ww - WIDTH(c);
