@@ -449,9 +449,9 @@ void
 drawbar(void)
 {
 	const char *tags[] = { "1", "2", "3" };
+	const int boxs = 2;
+	const int boxw = 6;
 	int x = 0, w = one_char_width, tw = 0;
-	int boxs = drw->fonts->h / 9;
-	int boxw = drw->fonts->h / 6 + 2;
 	int i;
 	int occ[3] = {0};
 	int urg[3] = {0};
