@@ -3,37 +3,18 @@
 	{ MODKEY,                       KEY,      view,           {.i = TAG} }, \
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.i = TAG} },
 
-static const char *dmenucmd[] = { "dmenu_run",  NULL };
-static const char *termcmd[]  = { "st",         NULL };
-static const char *ff[]       = { "firefox",    NULL };
-
-static const char *dpms[] = { "xset", "dpms", "force", "off", NULL };
-
-#define brightness     "/sys/class/backlight/intel_backlight/brightness"
-#define max_brightness "/sys/class/backlight/intel_backlight/max_brightness"
-
-static const char *high_brightness[] = {
-	"sh", "-c",
-	"cat " max_brightness " | sudo tee " brightness,
-	NULL };
-
-static const char *low_brightness[] = {
-	"sh", "-c",
-	"echo 100 | sudo tee " brightness,
-	NULL };
-
-static const char *mid_brightness[] = {
-	"sh", "-c",
-	"echo 6000 | sudo tee " brightness,
-	NULL };
-
-static const char *screenshot[]        = { "sh", "-c", "maim    ~/$(date +%Y-%m-%d_%H-%M-%S).png", NULL };
-static const char *screenshot_region[] = { "sh", "-c", "maim -s ~/$(date +%Y-%m-%d_%H-%M-%S).png", NULL };
-
-#define HERBE "pkill herbe; herbe $(pactl get-sink-volume @DEFAULT_SINK@ | awk '{print $5}')"
-static const char *increase_volume[]   = { "sh", "-c", "pactl set-sink-volume @DEFAULT_SINK@ +5%; "  HERBE, NULL };
-static const char *decrease_volume[]   = { "sh", "-c", "pactl set-sink-volume @DEFAULT_SINK@ -5%; "  HERBE, NULL };
-static const char *mute[]              = { "sh", "-c", "pactl set-sink-volume @DEFAULT_SINK@ -50%; " HERBE, NULL };
+static const char *dmenucmd[]          = { "dmenu_run",         NULL };
+static const char *termcmd[]           = { "st",                NULL };
+static const char *ff[]                = { "firefox",           NULL };
+static const char *dpms[]              = { "dpms",              NULL };
+static const char *high_brightness[]   = { "high_brightness",   NULL };
+static const char *low_brightness[]    = { "low_brightness",    NULL };
+static const char *mid_brightness[]    = { "mid_brightness",    NULL };
+static const char *ss[]                = { "screenshot",        NULL };
+static const char *ss_region[]         = { "screenshot_region", NULL };
+static const char *increase_volume[]   = { "increase_volume",   NULL };
+static const char *decrease_volume[]   = { "decrease_volume",   NULL };
+static const char *mute[]              = { "mute",              NULL };
 
 #include <X11/XF86keysym.h>
 static const Key keys[] = {
@@ -52,8 +33,8 @@ static const Key keys[] = {
 	{ MODKEY|ShiftMask, XK_space,     togglefloating, {0} },
 	{ MODKEY|ShiftMask, XK_q,         quit,           {0} },
 	{ MODKEY|ShiftMask, XK_BackSpace, killclient,     {0} },
-	{ 0,                XK_Print,     spawn,          {.v = screenshot} },
-	{ MODKEY,           XK_Print,     spawn,          {.v = screenshot_region} },
+	{ 0,                XK_Print,     spawn,          {.v = ss } },
+	{ MODKEY,           XK_Print,     spawn,          {.v = ss_region} },
 
 	{ 0,        XF86XK_AudioMute,           spawn,    {.v = mute} },
 	{ 0,        XF86XK_AudioRaiseVolume,    spawn,    {.v = increase_volume} },

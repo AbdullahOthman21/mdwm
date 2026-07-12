@@ -1,0 +1,5 @@
+#!/bin/sh
+pactl set-sink-volume @DEFAULT_SINK@ -5%
+
+pkill herbe
+herbe $(pactl get-sink-volume @DEFAULT_SINK@ | awk '{print $5}')
