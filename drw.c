@@ -1,5 +1,4 @@
 /* See LICENSE file for copyright and license details. */
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <X11/Xlib.h>
@@ -102,17 +101,14 @@ xfont_create(Drw *drw, const char *fontname, FcPattern *fontpattern)
 		 * behaviour whereas the former just results in missing-character
 		 * rectangles being drawn, at least with some fonts. */
 		if (!(xfont = XftFontOpenName(drw->dpy, drw->screen, fontname))) {
-			fprintf(stderr, "error, cannot load font from name: '%s'\n", fontname);
 			return NULL;
 		}
 		if (!(pattern = FcNameParse((FcChar8 *) fontname))) {
-			fprintf(stderr, "error, cannot parse font name to pattern: '%s'\n", fontname);
 			XftFontClose(drw->dpy, xfont);
 			return NULL;
 		}
 	} else if (fontpattern) {
 		if (!(xfont = XftFontOpenPattern(drw->dpy, fontpattern))) {
-			fprintf(stderr, "error, cannot load font from pattern.\n");
 			return NULL;
 		}
 	} else {
