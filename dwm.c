@@ -147,8 +147,8 @@ static char stext[128];
 static int screen;
 #define sw 1920
 #define sh 1080
-static int bh;               /* bar height */
-static int lrpad;            /* sum of left and right padding for text */
+#define lrpad 26
+#define bh 28
 static int (*xerrorxlib)(Display *, XErrorEvent *);
 static unsigned int numlockmask = 0;
 static void (*handler[LASTEvent]) (XEvent *) = {
@@ -1160,8 +1160,6 @@ setup(void)
 	drw = drw_create(dpy, screen, root, sw, sh);
 	if (!drw_fontset_create(drw, fonts, 1))
 		exit(1);
-	lrpad = drw->fonts->h;
-	bh = drw->fonts->h + 2;
 	mon.seltag = 0;
 	mon.mfact = 0.55;
 	mon.mw = mon.ww = sw;
