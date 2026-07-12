@@ -1117,18 +1117,10 @@ setfullscreen(Client *c, int fullscreen)
 	}
 }
 
-/* arg > 1.0 will set mfact absolutely */
 void
 setmfact(const Arg *arg)
 {
-	float f;
-
-	if (!arg)
-		return;
-	f = arg->f < 1.0 ? arg->f + mon.mfact : arg->f - 1.0;
-	if (f < 0.05 || f > 0.95)
-		return;
-	mon.mfact = f;
+	mon.mfact += arg->f;
 	arrange();
 }
 
