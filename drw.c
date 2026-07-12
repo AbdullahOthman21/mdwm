@@ -7,7 +7,6 @@
 #include "drw.h"
 
 #define UTF_INVALID 0xFFFD
-#define LENGTH(X)               (sizeof (X) / sizeof (X)[0])
 
 static int
 utf8decode(const char *s_in, long *u, int *err)
@@ -355,8 +354,8 @@ drw_text(Drw *drw, int x, int y, unsigned int w, unsigned int h, unsigned int lp
 			hash = (unsigned int)utf8codepoint;
 			hash = ((hash >> 16) ^ hash) * 0x21F0AAAD;
 			hash = ((hash >> 15) ^ hash) * 0xD35A2D97;
-			h0 = ((hash >> 15) ^ hash) % LENGTH(nomatches);
-			h1 = (hash >> 17) % LENGTH(nomatches);
+			h0 = ((hash >> 15) ^ hash) % _Countof(nomatches);
+			h1 = (hash >> 17) % _Countof(nomatches);
 			/* avoid expensive XftFontMatch call when we know we won't find a match */
 			if (nomatches[h0] == utf8codepoint || nomatches[h1] == utf8codepoint)
 				goto no_match;
