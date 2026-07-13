@@ -34,7 +34,7 @@ enum { WMProtocols, WMDelete, WMState, WMTakeFocus, WMLast }; /* default atoms *
 typedef union {
 	int i;
 	float f;
-	const void *v;
+	const char *v;
 } Arg;
 
 typedef struct Client Client;
@@ -1245,6 +1245,7 @@ void
 spawn(const Arg *arg)
 {
 	struct sigaction sa;
+	char * const argv[] = { (char *)arg->v, NULL };
 
 	if (fork() == 0) {
 		if (dpy)
@@ -1256,7 +1257,7 @@ spawn(const Arg *arg)
 		sa.sa_handler = SIG_DFL;
 		sigaction(SIGCHLD, &sa, NULL);
 
-		execvp(((char **)arg->v)[0], (char **)arg->v);
+		execvp(argv[0], argv);
 		exit(1);
 	}
 }
