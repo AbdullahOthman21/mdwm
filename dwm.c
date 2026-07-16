@@ -282,12 +282,9 @@ buttonpress(XEvent *e)
 		restack();
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 
-		if (ev->state != MODKEY)
-			return;
-
-		if (ev->button == Button1)
+		if (ev->state == MODKEY)
 			movemouse();
-		else if (ev->button == Button3)
+		else if (ev->state == (MODKEY | ShiftMask))
 			resizemouse();
 	}
 }
@@ -651,7 +648,7 @@ grabbuttons(Client *c, int focused)
 			BUTTONMASK, GrabModeSync, GrabModeSync, None, None);
 	XGrabButton(dpy, Button1, MODKEY, c->win, False,
 		BUTTONMASK, GrabModeAsync, GrabModeSync, None, None);
-	XGrabButton(dpy, Button3, MODKEY, c->win, False,
+	XGrabButton(dpy, Button1, MODKEY | ShiftMask, c->win, False,
 		BUTTONMASK, GrabModeAsync, GrabModeSync, None, None);
 }
 
