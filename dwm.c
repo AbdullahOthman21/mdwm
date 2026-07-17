@@ -144,7 +144,7 @@ static void zoom(const Arg *arg);
 
 /* variables */
 static char stext[128];
-static int screen;
+#define screen 0
 #define sw 1920
 #define sh 1080
 #define lrpad 26
@@ -1144,12 +1144,10 @@ setup(void)
 	while (waitpid(-1, NULL, WNOHANG) > 0);
 
 	/* init screen */
-	screen = DefaultScreen(dpy);
 	root = RootWindow(dpy, screen);
 	drw = drw_create(dpy, screen, root, sw, sh);
 	if (!drw_fontset_create(drw, fonts, 1))
 		exit(1);
-	mon.seltag = 0;
 	mon.mfact = 0.55;
 	mon.mw = mon.ww = sw;
 	mon.mh = mon.wh = sh;
