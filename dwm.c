@@ -679,13 +679,11 @@ void
 keypress(XEvent *e)
 {
 	unsigned int i;
-	KeySym keysym;
-	XKeyEvent *ev;
+	unsigned int state = e->xkey.state;
+	KeySym keysym = XKeycodeToKeysym(dpy, (KeyCode)e->xkey.keycode, 0);
 
-	ev = &e->xkey;
-	keysym = XKeycodeToKeysym(dpy, (KeyCode)ev->keycode, 0);
 	for (i = 0; i < _Countof(keys); i++)
-		if (keys[i].mod == ev->state && keysym == keys[i].keysym) {
+		if (keys[i].mod == state && keysym == keys[i].keysym) {
 			keys[i].func(&(keys[i].arg));
 			return;
 		}
