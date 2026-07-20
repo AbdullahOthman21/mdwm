@@ -3,7 +3,7 @@
 	{ MODKEY,                       KEY,      view,           {.i = TAG} }, \
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.i = TAG} },
 
-#define S "/home/me/projects/dwm/scripts/"
+#define S "/home/me/projects/dwm/bin/"
 
 #include <X11/XF86keysym.h>
 static const Key keys[] = {
