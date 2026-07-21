@@ -4,6 +4,7 @@
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.i = TAG} },
 
 #define S "/home/me/projects/dwm/bin/"
+static const Arg dummy = {.i = 0};
 
 #include <X11/XF86keysym.h>
 static const Key keys[] = {
@@ -16,12 +17,12 @@ static const Key keys[] = {
 	{ MODKEY,           XK_k,         focusstack,     {.i = -1 } },
 	{ MODKEY,           XK_h,         setmfact,       {.f = -0.05} },
 	{ MODKEY,           XK_l,         setmfact,       {.f = +0.05} },
-	{ MODKEY,           XK_Return,    zoom,           {0} },
-	{ MODKEY|ShiftMask, XK_c,         killclient,     {0} },
-	{ MODKEY|ShiftMask, XK_w,         killclient,     {0} },
-	{ MODKEY|ShiftMask, XK_space,     togglefloating, {0} },
-	{ MODKEY|ShiftMask, XK_q,         quit,           {0} },
-	{ MODKEY|ShiftMask, XK_BackSpace, killclient,     {0} },
+	{ MODKEY,           XK_Return,    zoom,           dummy },
+	{ MODKEY|ShiftMask, XK_c,         killclient,     dummy },
+	{ MODKEY|ShiftMask, XK_w,         killclient,     dummy },
+	{ MODKEY|ShiftMask, XK_space,     togglefloating, dummy },
+	{ MODKEY|ShiftMask, XK_q,         quit,           dummy },
+	{ MODKEY|ShiftMask, XK_BackSpace, killclient,     dummy },
 	{ 0,                XK_Print,     spawn,          {.v = S"screenshot" } },
 	{ MODKEY,           XK_Print,     spawn,          {.v = S"screenshot_region"} },
 

@@ -55,7 +55,7 @@ struct Client {
 typedef struct {
 	unsigned int mod;
 	KeySym keysym;
-	void (*func)(const Arg *);
+	void (*func)(const Arg);
 	const Arg arg;
 } Key;
 
@@ -90,7 +90,7 @@ static void enternotify(XEvent *e);
 static void expose(XEvent *e);
 static void focus(Client *c);
 static void focusin(XEvent *e);
-static void focusstack(const Arg *arg);
+static void focusstack(const Arg arg);
 static Atom getatomprop(Client *c, Atom prop);
 static int getrootptr(int *x, int *y);
 static long getstate(Window w);
@@ -98,7 +98,7 @@ static int gettextprop(Window w, Atom atom, char *text, unsigned int size);
 static void grabbuttons(Client *c, int focused);
 static void grabkeys(void);
 static void keypress(XEvent *e);
-static void killclient(const Arg *arg);
+static void killclient(const Arg arg);
 static void manage(Window w, XWindowAttributes *wa);
 static void mappingnotify(XEvent *e);
 static void maprequest(XEvent *e);
@@ -106,7 +106,7 @@ static void movemouse(void);
 static Client *nexttiled(Client *c);
 static void pop(Client *c);
 static void propertynotify(XEvent *e);
-static void quit(const Arg *arg);
+static void quit(const Arg arg);
 static void resize(Client *c, int x, int y, int w, int h, int interact);
 static void resizeclient(Client *c, int x, int y, int w, int h);
 static void resizemouse(void);
@@ -117,14 +117,14 @@ static int sendevent(Client *c, Atom proto);
 static void setclientstate(Client *c, long state);
 static void setfocus(Client *c);
 static void setfullscreen(Client *c, int fullscreen);
-static void setmfact(const Arg *arg);
+static void setmfact(const Arg arg);
 static void setup(void);
 static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
-static void spawn(const Arg *arg);
-static void tag(const Arg *arg);
+static void spawn(const Arg arg);
+static void tag(const Arg arg);
 static void tile(void);
-static void togglefloating(const Arg *arg);
+static void togglefloating(const Arg arg);
 static void unfocus(Client *c, int setfocus);
 static void unmanage(Client *c, int destroyed);
 static void unmapnotify(XEvent *e);
@@ -135,12 +135,12 @@ static void updatesizehints(Client *c);
 static void updatestatus(void);
 static void updatewindowtype(Client *c);
 static void updatewmhints(Client *c);
-static void view(const Arg *arg);
+static void view(const Arg arg);
 static Client *wintoclient(Window w);
 static int xerror(Display *dpy, XErrorEvent *ee);
 static int xerrordummy(Display *dpy, XErrorEvent *ee);
 static int xerrorstart(Display *dpy, XErrorEvent *ee);
-static void zoom(const Arg *arg);
+static void zoom(const Arg arg);
 
 /* variables */
 static char stext[128];
@@ -276,7 +276,7 @@ buttonpress(XEvent *e)
 	XButtonPressedEvent *ev = &e->xbutton;
 
 	if (ev->window == mon.barwin && (arg.i = ev->x / one_char_width) < 3) {
-		view(&arg);
+		view(arg);
 	} else if ((c = wintoclient(ev->window))) {
 		focus(c);
 		restack();
@@ -545,13 +545,13 @@ focusin(XEvent *e)
 }
 
 void
-focusstack(const Arg *arg)
+focusstack(const Arg arg)
 {
 	Client *c = NULL, *i;
 
 	if (!mon.sel || mon.sel->isfullscreen)
 		return;
-	if (arg->i > 0) {
+	if (arg.i > 0) {
 		for (c = mon.sel->next; c && !ISVISIBLE(c); c = c->next);
 		if (!c)
 			for (c = mon.clients; c && !ISVISIBLE(c); c = c->next);
@@ -684,13 +684,13 @@ keypress(XEvent *e)
 
 	for (i = 0; i < _Countof(keys); i++)
 		if (keys[i].mod == state && keysym == keys[i].keysym) {
-			keys[i].func(&(keys[i].arg));
+			keys[i].func(keys[i].arg);
 			return;
 		}
 }
 
 void
-killclient(const Arg *arg)
+killclient(const Arg arg)
 {
 	if (!mon.sel)
 		return;
@@ -836,7 +836,7 @@ movemouse(void)
 				ny = mon.wy + mon.wh - HEIGHT(c);
 			if (!c->isfloating
 			&& (abs(nx - c->x) > 32 || abs(ny - c->y) > 32))
-				togglefloating(NULL);
+				togglefloating(dummy);
 			if (c->isfloating)
 				resize(c, nx, ny, c->w, c->h, 1);
 			break;
@@ -894,7 +894,7 @@ propertynotify(XEvent *e)
 }
 
 void
-quit(const Arg *arg)
+quit(const Arg arg)
 {
 	running = 0;
 }
@@ -966,7 +966,7 @@ resizemouse(void)
 			{
 				if (!c->isfloating
 				&& (abs(nw - c->w) > 32 || abs(nh - c->h) > 32))
-					togglefloating(NULL);
+					togglefloating(dummy);
 			}
 			if (c->isfloating)
 				resize(c, c->x, c->y, nw, nh, 1);
@@ -1113,9 +1113,9 @@ setfullscreen(Client *c, int fullscreen)
 }
 
 void
-setmfact(const Arg *arg)
+setmfact(const Arg arg)
 {
-	mon.mfact += arg->f;
+	mon.mfact += arg.f;
 	arrange();
 }
 
@@ -1235,10 +1235,10 @@ showhide(Client *c)
 }
 
 void
-spawn(const Arg *arg)
+spawn(const Arg arg)
 {
 	struct sigaction sa;
-	char * const argv[] = { (char *)arg->v, NULL };
+	char * const argv[] = { (char *)arg.v, NULL };
 
 	if (fork() == 0) {
 		if (dpy)
@@ -1256,10 +1256,10 @@ spawn(const Arg *arg)
 }
 
 void
-tag(const Arg *arg)
+tag(const Arg arg)
 {
 	if (mon.sel) {
-		mon.sel->tag = arg->i;
+		mon.sel->tag = arg.i;
 		focus(NULL);
 		arrange();
 	}
@@ -1294,7 +1294,7 @@ tile(void)
 }
 
 void
-togglefloating(const Arg *arg)
+togglefloating(const Arg arg)
 {
 	if (!mon.sel)
 		return;
@@ -1489,11 +1489,11 @@ updatewmhints(Client *c)
 }
 
 void
-view(const Arg *arg)
+view(const Arg arg)
 {
-	if (arg->i == mon.seltag)
+	if (arg.i == mon.seltag)
 		return;
-	mon.seltag = arg->i;
+	mon.seltag = arg.i;
 	focus(NULL);
 	arrange();
 }
@@ -1544,7 +1544,7 @@ xerrorstart(Display *dpy, XErrorEvent *ee)
 }
 
 void
-zoom(const Arg *arg)
+zoom(const Arg arg)
 {
 	Client *c = mon.sel;
 
