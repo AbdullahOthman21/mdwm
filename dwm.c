@@ -1367,7 +1367,6 @@ updatebars(void)
 		.background_pixmap = ParentRelative,
 		.event_mask = ButtonPressMask|ExposureMask
 	};
-	XClassHint ch = {"dwm", "dwm"};
 	if (mon.barwin)
 		return;
 	mon.barwin = XCreateWindow(dpy, root, mon.wx, mon.by, mon.ww, bh, 0, DefaultDepth(dpy, screen),
@@ -1375,7 +1374,6 @@ updatebars(void)
 			CWOverrideRedirect|CWBackPixmap|CWEventMask, &wa);
 	XDefineCursor(dpy, mon.barwin, cursor[CurNormal]->cursor);
 	XMapRaised(dpy, mon.barwin);
-	XSetClassHint(dpy, mon.barwin, &ch);
 }
 
 void
