@@ -46,7 +46,7 @@ struct Client {
 	int basew, baseh, incw, inch, maxw, maxh, minw, minh, hintsvalid;
 	int bw, oldbw;
 	int tag;
-	int isfixed, isfloating, isurgent, neverfocus, oldstate, isfullscreen;
+	int isfixed, isfloating, neverfocus, oldstate, isfullscreen;
 	Client *next;
 	Client *snext;
 	Window win;
@@ -119,7 +119,6 @@ static void setfocus(Client *c);
 static void setfullscreen(Client *c, int fullscreen);
 static void setmfact(const Arg arg);
 static void setup(void);
-static void seturgent(Client *c, int urg);
 static void showhide(Client *c);
 static void spawn(const Arg arg);
 static void tag(const Arg arg);
@@ -334,9 +333,6 @@ clientmessage(XEvent *e)
 		|| cme->data.l[2] == netatom[NetWMFullscreen])
 			setfullscreen(c, (cme->data.l[0] == 1 /* _NET_WM_STATE_ADD    */
 				|| (cme->data.l[0] == 2 /* _NET_WM_STATE_TOGGLE */ && !c->isfullscreen)));
-	} else if (cme->message_type == netatom[NetActiveWindow]) {
-		if (c != mon.sel && !c->isurgent)
-			seturgent(c, 1);
 	}
 }
 
@@ -451,7 +447,6 @@ drawbar(void)
 	int x = 0, w = one_char_width, tw = 0;
 	int i;
 	int occ[3] = {0};
-	int urg[3] = {0};
 	Client *c;
 
 	/* draw status first so it can be overdrawn by tags later */
@@ -461,16 +456,13 @@ drawbar(void)
 
 	for (c = mon.clients; c; c = c->next) {
 		occ[c->tag] = 1;
-		if (c->isurgent)
-			urg[c->tag] = 1;
 	}
 	for (i = 0; i < 3; i++) {
 		drw_setscheme(drw, scheme[mon.seltag == i ? SchemeSel : SchemeNorm]);
-		drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], urg[i]);
+		drw_text(drw, x, 0, w, bh, lrpad / 2, tags[i], 0);
 		if (occ[i])
 			drw_rect(drw, x + boxs, boxs, boxw, boxw,
-				mon.sel && mon.sel->tag == i,
-				urg[i]);
+				mon.sel && mon.sel->tag == i, 0);
 		x += w;
 	}
 	drw_setscheme(drw, scheme[SchemeNorm]);
@@ -519,8 +511,6 @@ focus(Client *c)
 	if (mon.sel && mon.sel != c)
 		unfocus(mon.sel, 0);
 	if (c) {
-		if (c->isurgent)
-			seturgent(c, 0);
 		detachstack(c);
 		attachstack(c);
 		grabbuttons(c, 1);
@@ -1204,19 +1194,6 @@ setup(void)
 }
 
 void
-seturgent(Client *c, int urg)
-{
-	XWMHints *wmh;
-
-	c->isurgent = urg;
-	if (!(wmh = XGetWMHints(dpy, c->win)))
-		return;
-	wmh->flags = urg ? (wmh->flags | XUrgencyHint) : (wmh->flags & ~XUrgencyHint);
-	XSetWMHints(dpy, c->win, wmh);
-	XFree(wmh);
-}
-
-void
 showhide(Client *c)
 {
 	if (!c)
@@ -1473,11 +1450,6 @@ updatewmhints(Client *c)
 	XWMHints *wmh;
 
 	if ((wmh = XGetWMHints(dpy, c->win))) {
-		if (c == mon.sel && wmh->flags & XUrgencyHint) {
-			wmh->flags &= ~XUrgencyHint;
-			XSetWMHints(dpy, c->win, wmh);
-		} else
-			c->isurgent = (wmh->flags & XUrgencyHint) ? 1 : 0;
 		if (wmh->flags & InputHint)
 			c->neverfocus = !wmh->input;
 		else
