@@ -6,6 +6,6 @@ CFLAGS="\
 
 test -e drw.o || gcc -c $CFLAGS drw.c
 
-gcc -c $CFLAGS dwm.c
-gcc -lX11 -lfontconfig -lXft dwm.o drw.o -o dwm && mv dwm bin/
-rm -f dwm.o
+gcc -c $CFLAGS mdwm.c
+gcc -lX11 -lfontconfig -lXft mdwm.o drw.o -o mdwm && mv mdwm bin/
+rm -f mdwm.o

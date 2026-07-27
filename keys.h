@@ -3,7 +3,7 @@
 	{ MODKEY,                       KEY,      view,           {.i = TAG} }, \
 	{ MODKEY|ShiftMask,             KEY,      tag,            {.i = TAG} },
 
-#define S "/home/me/projects/dwm/bin/"
+#define S "/home/me/projects/mdwm/bin/"
 static const Arg dummy = {.i = 0};
 
 #include <X11/XF86keysym.h>
