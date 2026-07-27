@@ -2,7 +2,7 @@
 
 ![screenshot](screenshot.png)
 
-mdwm is a personal, stripped-down and optimized fork of suckless dwm that trades optional features and indirection for a smaller codebase, lower memory use, and faster runtime behavior.
+mdwm (mini-dwm) is a personal, stripped-down and optimized fork of suckless dwm that trades optional features and indirection for a smaller codebase, lower memory use, and faster runtime behavior.
 
 IMPORTANT — personal fork
 
@@ -60,9 +60,3 @@ The included build script compiles drw.c and mdwm.c and links with X11/fontconfi
 - drw.c / drw.h — minimal drawing/text helpers (Xft-based).
 - keys.h — keybindings and spawn commands.
 - build.sh — simple build script used to compile and place the binary into `bin/`.
-
-## Contributing / reverting decisions
-This fork intentionally removes features to optimize for size and speed. If you want to reintroduce functionality, the commit history documents what was removed and where; use those commits as a map to revert or selectively restore features.
-
-## License
-mdwm is derived from dwm; see the upstream dwm license and the repository files for licensing terms and attribution.
